@@ -1,0 +1,7 @@
+{
+	"name": "AzureDataLakeStorage400",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Storage/storageAccounts/bbawcom0virtuous0tmp",
+		"groupId": "dfs"
+	}
+}
