@@ -1,0 +1,19 @@
+{
+	"name": "VirtuousDA_Destination_LinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=bbawcom-virtuousda-destination.database.windows.net;initial catalog=VirtuousDA_Destination;user id=bbawcom_sqladmin",
+			"alwaysEncryptedSettings": {
+				"alwaysEncryptedAkvAuthType": "ManagedIdentity"
+			},
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDk3MEMzODNDLTIxODktNDU5Qy04N0Y5LUU2M0JCMjVDOTA4NF82MGI2OTk5YS1iMDZkLTQ2NGMtOTliMS0wYzBjNDFlZDQ1ZjUiDQp9"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
