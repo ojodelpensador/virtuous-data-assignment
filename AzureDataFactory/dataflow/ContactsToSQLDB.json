@@ -9,7 +9,7 @@
 						"referenceName": "MockData_TabDelimited_Contacts",
 						"type": "DatasetReference"
 					},
-					"name": "CSVOutput",
+					"name": "MockContactsCSVOutput",
 					"description": "From CSV Contacts file"
 				}
 			],
@@ -33,7 +33,7 @@
 				"     allowSchemaDrift: false,",
 				"     validateSchema: true,",
 				"     ignoreNoFilesFound: false,",
-				"     rowUrlColumn: 'SourceFileName') ~> CSVOutput"
+				"     rowUrlColumn: 'SourceFileName') ~> MockContactsCSVOutput"
 			]
 		}
 	}
