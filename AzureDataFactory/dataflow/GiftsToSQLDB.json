@@ -51,7 +51,9 @@
 				"          date as date,",
 				"          {credit card type} as string,",
 				"          {payment method} as string,",
-				"          notes as string",
+				"          notes as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -71,7 +73,8 @@
 				"          date,",
 				"          {credit card type},",
 				"          {payment method},",
-				"          notes",
+				"          notes,",
+				"          SourceFilename",
 				"     )) ~> MockGiftsDataIntoSQLDB"
 			]
 		}
