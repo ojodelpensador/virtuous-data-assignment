@@ -1,0 +1,9 @@
+{
+	"name": "VirtuousDA-ADF",
+	"location": "westus3",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "086865ed-3131-4099-8b31-e81f4f2bd608",
+		"tenantId": "1ea5489f-a641-4c27-bfab-cd9d068d6e59"
+	}
+}
