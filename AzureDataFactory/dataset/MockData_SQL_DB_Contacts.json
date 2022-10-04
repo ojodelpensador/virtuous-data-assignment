@@ -55,6 +55,15 @@
 			{
 				"name": "Deceased?",
 				"type": "varchar"
+			},
+			{
+				"name": "SourceFilename",
+				"type": "varchar"
+			},
+			{
+				"name": "ETLInsertDatetime",
+				"type": "datetime2",
+				"scale": 7
 			}
 		],
 		"typeProperties": {
