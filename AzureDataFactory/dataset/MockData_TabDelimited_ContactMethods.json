@@ -1,0 +1,41 @@
+{
+	"name": "MockData_TabDelimited_ContactMethods",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "MockContactMethods.csv",
+				"folderPath": "MockInputData/CSV",
+				"fileSystem": "data-assignment"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "donor_number",
+				"type": "String"
+			},
+			{
+				"name": "Phone",
+				"type": "String"
+			},
+			{
+				"name": "E-mail",
+				"type": "String"
+			},
+			{
+				"name": "Fax",
+				"type": "String"
+			}
+		]
+	}
+}
