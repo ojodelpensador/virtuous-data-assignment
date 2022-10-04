@@ -1,0 +1,32 @@
+{
+	"name": "ContactMethodsToSQLDB",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_TabDelimited_ContactMethods",
+						"type": "DatasetReference"
+					},
+					"name": "CSVOutputContactMethods",
+					"description": "CSV data from MockContactMethods file"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          donor_number as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Fax as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'SourceFilename') ~> CSVOutputContactMethods"
+			]
+		}
+	}
+}
