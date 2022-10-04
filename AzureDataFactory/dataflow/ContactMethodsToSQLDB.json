@@ -1,0 +1,66 @@
+{
+	"name": "ContactMethodsToSQLDB",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_TabDelimited_ContactMethods",
+						"type": "DatasetReference"
+					},
+					"name": "CSVOutputContactMethods",
+					"description": "CSV data from MockContactMethods file"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MockData_SQL_DB_ContactMethods",
+						"type": "DatasetReference"
+					},
+					"name": "ContactMethodsIntoSQLDB"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          donor_number as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Fax as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'SourceFilename') ~> CSVOutputContactMethods",
+				"CSVOutputContactMethods sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          donor_number as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Fax as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          donor_number,",
+				"          Phone,",
+				"          {E-mail},",
+				"          Fax,",
+				"          SourceFilename",
+				"     )) ~> ContactMethodsIntoSQLDB"
+			]
+		}
+	}
+}

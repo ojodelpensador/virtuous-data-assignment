@@ -1,0 +1,91 @@
+{
+	"name": "ContactsToSQLDB",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_TabDelimited_Contacts",
+						"type": "DatasetReference"
+					},
+					"name": "MockContactsCSVOutput",
+					"description": "From CSV Contacts file"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MockData_SQL_DB_Contacts",
+						"type": "DatasetReference"
+					},
+					"name": "MockContactsIntoSQLDB",
+					"description": "Insert rows into MockContacts table"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Number as string,",
+				"          {Company Name} as string,",
+				"          {First Name} as string,",
+				"          {Last Name} as string,",
+				"          Street as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Postal as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Remarks as string,",
+				"          {Deceased?} as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: true,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'SourceFileName') ~> MockContactsCSVOutput",
+				"MockContactsCSVOutput sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Number as string,",
+				"          CompanyName as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Street as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Postal as string,",
+				"          Phone as string,",
+				"          EMail as string,",
+				"          Remarks as string,",
+				"          {Deceased?} as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Number,",
+				"          CompanyName = {Company Name},",
+				"          FirstName = {First Name},",
+				"          LastName = {Last Name},",
+				"          Street,",
+				"          City,",
+				"          State,",
+				"          Postal,",
+				"          Phone,",
+				"          EMail = {E-mail},",
+				"          Remarks,",
+				"          {Deceased?},",
+				"          SourceFilename = SourceFileName",
+				"     )) ~> MockContactsIntoSQLDB"
+			]
+		}
+	}
+}

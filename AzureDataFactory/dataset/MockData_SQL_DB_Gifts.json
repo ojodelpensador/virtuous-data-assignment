@@ -1,0 +1,68 @@
+{
+	"name": "MockData_SQL_DB_Gifts",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Mock_DataSets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "donor_number",
+				"type": "varchar"
+			},
+			{
+				"name": "gift_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "first_name",
+				"type": "varchar"
+			},
+			{
+				"name": "last_name",
+				"type": "varchar"
+			},
+			{
+				"name": "amount received",
+				"type": "decimal",
+				"precision": 19,
+				"scale": 4
+			},
+			{
+				"name": "date",
+				"type": "date"
+			},
+			{
+				"name": "credit card type",
+				"type": "varchar"
+			},
+			{
+				"name": "payment method",
+				"type": "varchar"
+			},
+			{
+				"name": "notes",
+				"type": "varchar"
+			},
+			{
+				"name": "SourceFilename",
+				"type": "varchar"
+			},
+			{
+				"name": "ETLInsertDatetime",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MockGifts"
+		}
+	}
+}
