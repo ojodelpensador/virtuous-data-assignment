@@ -1,5 +1,5 @@
 {
-	"name": "MockData_VirtuousDA_SQLDB",
+	"name": "MockData_SQL_DB_Contacts",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDatabase1",
