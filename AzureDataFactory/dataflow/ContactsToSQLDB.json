@@ -1,0 +1,40 @@
+{
+	"name": "ContactsToSQLDB",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_TabDelimited_Contacts",
+						"type": "DatasetReference"
+					},
+					"name": "CSVOutput",
+					"description": "From CSV Contacts file"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Number as string,",
+				"          {Company Name} as string,",
+				"          {First Name} as string,",
+				"          {Last Name} as string,",
+				"          Street as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Postal as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Remarks as string,",
+				"          {Deceased?} as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: true,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'SourceFileName') ~> CSVOutput"
+			]
+		}
+	}
+}
