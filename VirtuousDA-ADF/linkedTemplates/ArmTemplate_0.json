@@ -1,0 +1,922 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "VirtuousDA-ADF"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"AzureDataLakeStorage420_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Storage/storageAccounts/bbawcom0virtuous0tmp"
+		},
+		"AzureDataLakeStorage420_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"AzureSqlDatabase7_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Sql/servers/virtuousda-bbawcom"
+		},
+		"AzureSqlDatabase7_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://bbawcom0virtuous0tmp.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0,
+							"cleanup": true
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureDataLakeStorage420')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureDataLakeStorage420_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureDataLakeStorage420_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/AzureSqlDatabase7')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('AzureSqlDatabase7_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('AzureSqlDatabase7_properties_groupId')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_SQL_DB_ContactMethods')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "donor_number",
+						"type": "varchar"
+					},
+					{
+						"name": "Phone",
+						"type": "varchar"
+					},
+					{
+						"name": "E-mail",
+						"type": "varchar"
+					},
+					{
+						"name": "Fax",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFilename",
+						"type": "varchar"
+					},
+					{
+						"name": "ETLInsertDatetime",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MockContactMethods"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_SQL_DB_Contacts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Number",
+						"type": "varchar"
+					},
+					{
+						"name": "CompanyName",
+						"type": "varchar"
+					},
+					{
+						"name": "FirstName",
+						"type": "varchar"
+					},
+					{
+						"name": "LastName",
+						"type": "varchar"
+					},
+					{
+						"name": "Street",
+						"type": "varchar"
+					},
+					{
+						"name": "City",
+						"type": "varchar"
+					},
+					{
+						"name": "State",
+						"type": "varchar"
+					},
+					{
+						"name": "Postal",
+						"type": "varchar"
+					},
+					{
+						"name": "Phone",
+						"type": "varchar"
+					},
+					{
+						"name": "EMail",
+						"type": "varchar"
+					},
+					{
+						"name": "Remarks",
+						"type": "varchar"
+					},
+					{
+						"name": "Deceased?",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFilename",
+						"type": "varchar"
+					},
+					{
+						"name": "ETLInsertDatetime",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MockContacts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_SQL_DB_Gifts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "donor_number",
+						"type": "varchar"
+					},
+					{
+						"name": "gift_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "first_name",
+						"type": "varchar"
+					},
+					{
+						"name": "last_name",
+						"type": "varchar"
+					},
+					{
+						"name": "amount received",
+						"type": "decimal",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "date",
+						"type": "date"
+					},
+					{
+						"name": "credit card type",
+						"type": "varchar"
+					},
+					{
+						"name": "payment method",
+						"type": "varchar"
+					},
+					{
+						"name": "notes",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFilename",
+						"type": "varchar"
+					},
+					{
+						"name": "ETLInsertDatetime",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MockGifts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_TabDelimited_ContactMethods')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "MockContactMethods.csv",
+						"folderPath": "MockInputData/CSV",
+						"fileSystem": "data-assignment"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "donor_number",
+						"type": "String"
+					},
+					{
+						"name": "Phone",
+						"type": "String"
+					},
+					{
+						"name": "E-mail",
+						"type": "String"
+					},
+					{
+						"name": "Fax",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_TabDelimited_Contacts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "MockContacts.csv",
+						"folderPath": "MockInputData/CSV",
+						"fileSystem": "data-assignment"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Number",
+						"type": "String"
+					},
+					{
+						"name": "Company Name",
+						"type": "String"
+					},
+					{
+						"name": "First Name",
+						"type": "String"
+					},
+					{
+						"name": "Last Name",
+						"type": "String"
+					},
+					{
+						"name": "Street",
+						"type": "String"
+					},
+					{
+						"name": "City",
+						"type": "String"
+					},
+					{
+						"name": "State",
+						"type": "String"
+					},
+					{
+						"name": "Postal",
+						"type": "String"
+					},
+					{
+						"name": "Phone",
+						"type": "String"
+					},
+					{
+						"name": "E-mail",
+						"type": "String"
+					},
+					{
+						"name": "Remarks",
+						"type": "String"
+					},
+					{
+						"name": "Deceased?",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockData_TabDelimited_Gifts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Mock_DataSets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "MockGifts.csv",
+						"folderPath": "MockInputData/CSV",
+						"fileSystem": "data-assignment"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "donor_number",
+						"type": "String"
+					},
+					{
+						"name": "gift_id",
+						"type": "String"
+					},
+					{
+						"name": "first_name",
+						"type": "String"
+					},
+					{
+						"name": "last_name",
+						"type": "String"
+					},
+					{
+						"name": "amount received",
+						"type": "String"
+					},
+					{
+						"name": "date",
+						"type": "String"
+					},
+					{
+						"name": "credit card type",
+						"type": "String"
+					},
+					{
+						"name": "payment method",
+						"type": "String"
+					},
+					{
+						"name": "notes",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ContactMethodsToSQLDB')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_TabDelimited_ContactMethods",
+								"type": "DatasetReference"
+							},
+							"name": "CSVOutputContactMethods",
+							"description": "CSV data from MockContactMethods file"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_ContactMethods",
+								"type": "DatasetReference"
+							},
+							"name": "ContactMethodsIntoSQLDB"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          donor_number as string,",
+						"          Phone as string,",
+						"          {E-mail} as string,",
+						"          Fax as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'SourceFilename') ~> CSVOutputContactMethods",
+						"CSVOutputContactMethods sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          donor_number as string,",
+						"          Phone as string,",
+						"          {E-mail} as string,",
+						"          Fax as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          donor_number,",
+						"          Phone,",
+						"          {E-mail},",
+						"          Fax,",
+						"          SourceFilename",
+						"     )) ~> ContactMethodsIntoSQLDB"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MockData_TabDelimited_ContactMethods')]",
+				"[concat(variables('factoryId'), '/datasets/MockData_SQL_DB_ContactMethods')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ContactsToSQLDB')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_TabDelimited_Contacts",
+								"type": "DatasetReference"
+							},
+							"name": "MockContactsCSVOutput",
+							"description": "From CSV Contacts file"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_Contacts",
+								"type": "DatasetReference"
+							},
+							"name": "MockContactsIntoSQLDB",
+							"description": "Insert rows into MockContacts table"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          Number as string,",
+						"          {Company Name} as string,",
+						"          {First Name} as string,",
+						"          {Last Name} as string,",
+						"          Street as string,",
+						"          City as string,",
+						"          State as string,",
+						"          Postal as string,",
+						"          Phone as string,",
+						"          {E-mail} as string,",
+						"          Remarks as string,",
+						"          {Deceased?} as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: true,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'SourceFileName') ~> MockContactsCSVOutput",
+						"MockContactsCSVOutput sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Number as string,",
+						"          CompanyName as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Street as string,",
+						"          City as string,",
+						"          State as string,",
+						"          Postal as string,",
+						"          Phone as string,",
+						"          EMail as string,",
+						"          Remarks as string,",
+						"          {Deceased?} as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Number,",
+						"          CompanyName = {Company Name},",
+						"          FirstName = {First Name},",
+						"          LastName = {Last Name},",
+						"          Street,",
+						"          City,",
+						"          State,",
+						"          Postal,",
+						"          Phone,",
+						"          EMail = {E-mail},",
+						"          Remarks,",
+						"          {Deceased?},",
+						"          SourceFilename = SourceFileName",
+						"     )) ~> MockContactsIntoSQLDB"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MockData_TabDelimited_Contacts')]",
+				"[concat(variables('factoryId'), '/datasets/MockData_SQL_DB_Contacts')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GiftsToSQLDB')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_TabDelimited_Gifts",
+								"type": "DatasetReference"
+							},
+							"name": "GiftsCSVOutput",
+							"description": "CSV data from MockGifts file"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_Gifts",
+								"type": "DatasetReference"
+							},
+							"name": "MockGiftsDataIntoSQLDB",
+							"description": "TRUNCATE and INSERT into SQL DB"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          donor_number as string,",
+						"          gift_id as string,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          {amount received} as string,",
+						"          date as string,",
+						"          {credit card type} as string,",
+						"          {payment method} as string,",
+						"          notes as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'SourceFilename') ~> GiftsCSVOutput",
+						"GiftsCSVOutput sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          donor_number as string,",
+						"          gift_id as integer,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          {amount received} as decimal(19,4),",
+						"          date as date,",
+						"          {credit card type} as string,",
+						"          {payment method} as string,",
+						"          notes as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          donor_number,",
+						"          gift_id,",
+						"          first_name,",
+						"          last_name,",
+						"          {amount received},",
+						"          date,",
+						"          {credit card type},",
+						"          {payment method},",
+						"          notes,",
+						"          SourceFilename",
+						"     )) ~> MockGiftsDataIntoSQLDB"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MockData_TabDelimited_Gifts')]",
+				"[concat(variables('factoryId'), '/datasets/MockData_SQL_DB_Gifts')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ImportToSQLDB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ContactsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ContactsToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"MockContactsCSVOutput": {},
+									"MockContactsIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "GiftsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ContactsToSQLDB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "GiftsToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GiftsCSVOutput": {},
+									"MockGiftsDataIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ContactMethodsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "GiftsToSQLDB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ContactMethodsToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVOutputContactMethods": {},
+									"ContactMethodsIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ContactsToSQLDB')]",
+				"[concat(variables('factoryId'), '/dataflows/GiftsToSQLDB')]",
+				"[concat(variables('factoryId'), '/dataflows/ContactMethodsToSQLDB')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,84 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "VirtuousDA-ADF"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://bbawcom0virtuous0tmp.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage420_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Storage/storageAccounts/bbawcom0virtuous0tmp"
+		},
+		"AzureDataLakeStorage420_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"AzureSqlDatabase7_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Sql/servers/virtuousda-bbawcom"
+		},
+		"AzureSqlDatabase7_properties_groupId": {
+			"type": "string",
+			"defaultValue": "sqlServer"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "VirtuousDA-ADF_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureSqlDatabase1_connectionString": {
+						"value": "[parameters('AzureSqlDatabase1_connectionString')]"
+					},
+					"AzureDataLakeStorage420_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureDataLakeStorage420_properties_privateLinkResourceId')]"
+					},
+					"AzureDataLakeStorage420_properties_groupId": {
+						"value": "[parameters('AzureDataLakeStorage420_properties_groupId')]"
+					},
+					"AzureSqlDatabase7_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureSqlDatabase7_properties_privateLinkResourceId')]"
+					},
+					"AzureSqlDatabase7_properties_groupId": {
+						"value": "[parameters('AzureSqlDatabase7_properties_groupId')]"
+					},
+					"AzureDataLakeStorage1_properties_typeProperties_url": {
+						"value": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

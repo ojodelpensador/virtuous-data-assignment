@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "VirtuousDA-ADF"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://bbawcom0virtuous0tmp.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage420_properties_privateLinkResourceId": {
+			"value": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Storage/storageAccounts/bbawcom0virtuous0tmp"
+		},
+		"AzureDataLakeStorage420_properties_groupId": {
+			"value": "dfs"
+		},
+		"AzureSqlDatabase7_properties_privateLinkResourceId": {
+			"value": "/subscriptions/46dd7d8e-f455-43e3-9e09-78887d09f83a/resourceGroups/VirtuousDataAssignment_BBawcom/providers/Microsoft.Sql/servers/virtuousda-bbawcom"
+		},
+		"AzureSqlDatabase7_properties_groupId": {
+			"value": "sqlServer"
+		}
+	}
+}
