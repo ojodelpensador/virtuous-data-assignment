@@ -21,51 +21,39 @@
 		},
 		"schema": [
 			{
-				"name": "Number",
+				"name": "donor_number",
 				"type": "String"
 			},
 			{
-				"name": "Company Name",
+				"name": "gift_id",
 				"type": "String"
 			},
 			{
-				"name": "First Name",
+				"name": "first_name",
 				"type": "String"
 			},
 			{
-				"name": "Last Name",
+				"name": "last_name",
 				"type": "String"
 			},
 			{
-				"name": "Street",
+				"name": "amount received",
 				"type": "String"
 			},
 			{
-				"name": "City",
+				"name": "date",
 				"type": "String"
 			},
 			{
-				"name": "State",
+				"name": "credit card type",
 				"type": "String"
 			},
 			{
-				"name": "Postal",
+				"name": "payment method",
 				"type": "String"
 			},
 			{
-				"name": "Phone",
-				"type": "String"
-			},
-			{
-				"name": "E-mail",
-				"type": "String"
-			},
-			{
-				"name": "Remarks",
-				"type": "String"
-			},
-			{
-				"name": "Deceased?",
+				"name": "notes",
 				"type": "String"
 			}
 		]
