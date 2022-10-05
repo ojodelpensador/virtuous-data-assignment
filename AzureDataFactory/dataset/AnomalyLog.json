@@ -1,0 +1,32 @@
+{
+	"name": "AnomalyLog",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Virtuous_Table_Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "IdentifyingColumnName",
+				"type": "varchar"
+			},
+			{
+				"name": "ColumnValue",
+				"type": "varchar"
+			},
+			{
+				"name": "ConcatenatedRowData",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "AnomalyLog"
+		}
+	}
+}

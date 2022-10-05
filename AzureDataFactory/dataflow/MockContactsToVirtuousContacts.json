@@ -26,11 +26,12 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "CheckPostalCodeAndDerive",
-					"description": "If contact and Postal value matches requirements for US format, accept it.\nIf not US, accept it.\nIf contact is US but Postal does not match format, clear it and log it."
+					"name": "CheckingAndDeriving",
+					"description": "Check/derive valid Postal code\nCheck/derive IsDeceased\nCheck/derive ContactType"
 				},
 				{
-					"name": "lookup1"
+					"name": "LookupMockContactState",
+					"description": "Match MockContact state to Valid State Abbreviations"
 				}
 			],
 			"scriptLines": [
@@ -63,11 +64,32 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> StateAbbreviations",
-				"lookup1 derive(UseThisPostalCode = ERROR_FUNCTION('')) ~> CheckPostalCodeAndDerive",
-				"MockContactsTable lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"LookupMockContactState derive(UseThisPostalCode = iif(\r",
+				"    and(\r",
+				"        length(concat(Street,City,State))>0\r",
+				"        ,and(\r",
+				"            not(isNull(StateAbbreviation))\r",
+				"            ,or(regexMatch(Postal, `^\\d\\d\\d\\d\\d$`),regexMatch(Postal, `^\\d\\d\\d\\d\\d-\\d\\d\\d\\d$`))\r",
+				"        )\r",
+				"    )\r",
+				"    ,Postal\r",
+				"    ,''),",
+				"          UseThisIsDeceased = iif({Deceased?}=='Yes','TRUE','FALSE'),",
+				"          UseThisContactType = iif(isNull(CompanyName),'Household','Organization'),",
+				"          UseThisFirstName = iifNull(FirstName, \"\"),",
+				"          UseThisLastName = iifNull(LastName, \"\"),",
+				"          UseThisIsPrivate = iif(\r",
+				"    and(\r",
+				"        like(Remarks, '%anonymous%')\r",
+				"        ,not(like(Remarks, '%not anonymous%'))\r",
+				"    )\r",
+				"    ,'TRUE'\r",
+				"    ,'FALSE'\r",
+				")) ~> CheckingAndDeriving",
+				"MockContactsTable, StateAbbreviations lookup(State == StateAbbreviation,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup1"
+				"     broadcast: 'auto')~> LookupMockContactState"
 			]
 		}
 	}
