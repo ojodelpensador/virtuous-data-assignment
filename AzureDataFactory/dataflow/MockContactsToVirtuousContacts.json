@@ -23,7 +23,18 @@
 					"name": "StateAbbreviations"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Virtuous_Contacts_Table",
+						"type": "DatasetReference"
+					},
+					"name": "VirtuousContacts"
+				},
+				{
+					"name": "sink2"
+				}
+			],
 			"transformations": [
 				{
 					"name": "CheckingAndDeriving",
@@ -89,7 +100,51 @@
 				"MockContactsTable, StateAbbreviations lookup(State == StateAbbreviation,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> LookupMockContactState"
+				"     broadcast: 'auto')~> LookupMockContactState",
+				"CheckingAndDeriving sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LegacyContactId as string,",
+				"          ContactType as string,",
+				"          ContactName as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          HomePhone as string,",
+				"          HomeEmail as string,",
+				"          Address1 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          PostalCode as string,",
+				"          IsPrivate as string,",
+				"          IsDeceased as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LegacyContactId = Number,",
+				"          ContactType = UseThisContactType,",
+				"          FirstName = UseThisFirstName,",
+				"          LastName = UseThisLastName,",
+				"          HomePhone = Phone,",
+				"          HomeEmail = EMail,",
+				"          Address1 = Street,",
+				"          City,",
+				"          State,",
+				"          PostalCode = UseThisPostalCode,",
+				"          IsPrivate = UseThisIsPrivate,",
+				"          IsDeceased = UseThisIsDeceased",
+				"     )) ~> VirtuousContacts",
+				"CheckingAndDeriving sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink2"
 			]
 		}
 	}
