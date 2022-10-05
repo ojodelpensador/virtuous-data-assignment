@@ -1,6 +1,9 @@
 {
 	"name": "ContactsCSVToSQLDB",
 	"properties": {
+		"folder": {
+			"name": "CSVToSQLDB"
+		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
