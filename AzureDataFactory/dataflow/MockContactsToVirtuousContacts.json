@@ -288,7 +288,7 @@
 				"          IsPrivate = UseThisIsPrivate,",
 				"          IsDeceased = UseThisIsDeceased",
 				"     )) ~> VirtuousContacts",
-				"RemoveGoodRows sink(allowSchemaDrift: true,",
+				"RemoveGoodRows sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
 				"          IdentifyingColumnName as string,",
@@ -302,7 +302,12 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> AnomalyLog"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IdentifyingColumnName = IdentifyingColumn,",
+				"          ColumnValue = IdentifyingValue,",
+				"          ConcatenatedRowData",
+				"     )) ~> AnomalyLog"
 			]
 		}
 	}
