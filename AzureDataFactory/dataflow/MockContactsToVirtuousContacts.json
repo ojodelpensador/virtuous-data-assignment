@@ -1,0 +1,74 @@
+{
+	"name": "MockContactsToVirtuousContacts",
+	"properties": {
+		"folder": {
+			"name": "MockTablesToVirtuousTables"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_SQL_DB_Contacts",
+						"type": "DatasetReference"
+					},
+					"name": "MockContactsTable",
+					"description": "MockContacts data"
+				},
+				{
+					"dataset": {
+						"referenceName": "USStateAbbreviations",
+						"type": "DatasetReference"
+					},
+					"name": "StateAbbreviations"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "CheckPostalCodeAndDerive",
+					"description": "If contact and Postal value matches requirements for US format, accept it.\nIf not US, accept it.\nIf contact is US but Postal does not match format, clear it and log it."
+				},
+				{
+					"name": "lookup1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Number as string,",
+				"          CompanyName as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Street as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Postal as string,",
+				"          Phone as string,",
+				"          EMail as string,",
+				"          Remarks as string,",
+				"          {Deceased?} as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MockContactsTable",
+				"source(output(",
+				"          StateAbbreviationId as integer,",
+				"          StateAbbreviation as string,",
+				"          StateName as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> StateAbbreviations",
+				"lookup1 derive(UseThisPostalCode = ERROR_FUNCTION('')) ~> CheckPostalCodeAndDerive",
+				"MockContactsTable lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1"
+			]
+		}
+	}
+}
