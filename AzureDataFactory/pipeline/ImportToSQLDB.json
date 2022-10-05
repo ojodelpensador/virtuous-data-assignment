@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "ContactsToSQLDB",
+						"referenceName": "ContactsCSVToSQLDB",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -78,7 +78,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "ContactMethodsToSQLDB",
+						"referenceName": "ContactMethodsCSVToSQLDB",
 						"type": "DataFlowReference"
 					},
 					"compute": {

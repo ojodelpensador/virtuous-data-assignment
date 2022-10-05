@@ -1,0 +1,33 @@
+{
+	"name": "USStateAbbreviations",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Virtuous_Table_Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "StateAbbreviationId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StateAbbreviation",
+				"type": "varchar"
+			},
+			{
+				"name": "StateName",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "StateAbbreviations"
+		}
+	}
+}
