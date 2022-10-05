@@ -135,6 +135,43 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AnomalyLog')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Virtuous_Table_Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "IdentifyingColumnName",
+						"type": "varchar"
+					},
+					{
+						"name": "ColumnValue",
+						"type": "varchar"
+					},
+					{
+						"name": "ConcatenatedRowData",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "AnomalyLog"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/MockData_SQL_DB_ContactMethods')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -539,10 +576,128 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ContactMethodsToSQLDB')]",
+			"name": "[concat(parameters('factoryName'), '/USStateAbbreviations')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Virtuous_Table_Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "StateAbbreviationId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StateAbbreviation",
+						"type": "varchar"
+					},
+					{
+						"name": "StateName",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "StateAbbreviations"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Virtuous_Contacts_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Virtuous_Table_Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "LegacyContactId",
+						"type": "varchar"
+					},
+					{
+						"name": "ContactType",
+						"type": "varchar"
+					},
+					{
+						"name": "ContactName",
+						"type": "varchar"
+					},
+					{
+						"name": "FirstName",
+						"type": "varchar"
+					},
+					{
+						"name": "LastName",
+						"type": "varchar"
+					},
+					{
+						"name": "HomePhone",
+						"type": "varchar"
+					},
+					{
+						"name": "HomeEmail",
+						"type": "varchar"
+					},
+					{
+						"name": "Address1",
+						"type": "varchar"
+					},
+					{
+						"name": "City",
+						"type": "varchar"
+					},
+					{
+						"name": "State",
+						"type": "varchar"
+					},
+					{
+						"name": "PostalCode",
+						"type": "varchar"
+					},
+					{
+						"name": "IsPrivate",
+						"type": "varchar"
+					},
+					{
+						"name": "IsDeceased",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Contacts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ContactMethodsCSVToSQLDB')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"folder": {
+					"name": "CSVToSQLDB"
+				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
 					"sources": [
@@ -611,10 +766,13 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ContactsToSQLDB')]",
+			"name": "[concat(parameters('factoryName'), '/ContactsCSVToSQLDB')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"folder": {
+					"name": "CSVToSQLDB"
+				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
 					"sources": [
@@ -712,6 +870,9 @@
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"folder": {
+					"name": "CSVToSQLDB"
+				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
 					"sources": [
@@ -796,6 +957,328 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/MockContactsToVirtuousContacts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "MockTablesToVirtuousTables"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_Contacts",
+								"type": "DatasetReference"
+							},
+							"name": "MockContactsTable",
+							"description": "MockContacts data"
+						},
+						{
+							"dataset": {
+								"referenceName": "USStateAbbreviations",
+								"type": "DatasetReference"
+							},
+							"name": "StateAbbreviations"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Virtuous_Contacts_Table",
+								"type": "DatasetReference"
+							},
+							"name": "VirtuousContacts"
+						},
+						{
+							"dataset": {
+								"referenceName": "AnomalyLog",
+								"type": "DatasetReference"
+							},
+							"name": "AnomalyLog"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CheckingAndDeriving",
+							"description": "Check/derive valid Postal code\nCheck/derive IsDeceased\nCheck/derive ContactType"
+						},
+						{
+							"name": "LookupMockContactState",
+							"description": "Match MockContact state to Valid State Abbreviations"
+						},
+						{
+							"name": "RemoveGoodRows",
+							"description": "If IdentifyingColumn is blank string or NULL, omit the row"
+						},
+						{
+							"name": "DeriveAnomalyData",
+							"description": "Concatenate row data\nTest and set identifying column(s) and value(s)"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Number as string,",
+						"          CompanyName as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Street as string,",
+						"          City as string,",
+						"          State as string,",
+						"          Postal as string,",
+						"          Phone as string,",
+						"          EMail as string,",
+						"          Remarks as string,",
+						"          {Deceased?} as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> MockContactsTable",
+						"source(output(",
+						"          StateAbbreviationId as integer,",
+						"          StateAbbreviation as string,",
+						"          StateName as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> StateAbbreviations",
+						"LookupMockContactState derive(UseThisPostalCode = iif(\r",
+						"    and(\r",
+						"        length(concat(Street,City,State))>0\r",
+						"        ,and(\r",
+						"            not(isNull(StateAbbreviation))\r",
+						"            ,or(regexMatch(Postal, `^\\d\\d\\d\\d\\d$`),regexMatch(Postal, `^\\d\\d\\d\\d\\d-\\d\\d\\d\\d$`))\r",
+						"        )\r",
+						"    )\r",
+						"    ,Postal\r",
+						"    ,''),",
+						"          UseThisIsDeceased = iif({Deceased?}=='Yes','TRUE','FALSE'),",
+						"          UseThisContactType = iif(isNull(CompanyName),'Household','Organization'),",
+						"          UseThisFirstName = iifNull(FirstName, \"\"),",
+						"          UseThisLastName = iifNull(LastName, \"\"),",
+						"          UseThisIsPrivate = iif(\r",
+						"    and(\r",
+						"        like(Remarks, '%anonymous%')\r",
+						"        ,not(like(Remarks, '%not anonymous%'))\r",
+						"    )\r",
+						"    ,'TRUE'\r",
+						"    ,'FALSE'\r",
+						"),",
+						"          UseThisContactName = concat(\r",
+						"    iif(\r",
+						"        isNull(FirstName)\r",
+						"        ,\"\"\r",
+						"        ,concat(\r",
+						"            FirstName\r",
+						"            , iif(\r",
+						"                isNull(LastName)\r",
+						"                ,\"\"\r",
+						"                ,\" \")\r",
+						"        )\r",
+						"    )\r",
+						"    , iif(\r",
+						"        isNull(LastName)\r",
+						"        , \"\"\r",
+						"        , LastName\r",
+						"    )\r",
+						")) ~> CheckingAndDeriving",
+						"MockContactsTable, StateAbbreviations lookup(State == StateAbbreviation,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> LookupMockContactState",
+						"DeriveAnomalyData filter(not(\r",
+						"    equals(\r",
+						"    iifNull( IdentifyingColumn, \"\")\r",
+						"    , \"\"\r",
+						"    )\r",
+						")) ~> RemoveGoodRows",
+						"CheckingAndDeriving derive(ConcatenatedRowData = concat(\r",
+						"    \"Number:\"\r",
+						"    , Number\r",
+						"    , \"|CompanyName:\"\r",
+						"    , iifNull( CompanyName, \"NULL\")\r",
+						"    , \"|FirstName:\"\r",
+						"    , iifNull( FirstName, \"NULL\")\r",
+						"    , \"|LastName:\"\r",
+						"    , iifNull( LastName, \"NULL\")\r",
+						"    , \"|Street:\"\r",
+						"    , iifNull( Street, \"NULL\")\r",
+						"    , \"|City:\"\r",
+						"    , iifNull( City, \"NULL\")\r",
+						"    , \"|State:\"\r",
+						"    , iifNull( State, \"NULL\")\r",
+						"    , \"|Postal:\"\r",
+						"    , iifNull( Postal, \"NULL\")\r",
+						"    , \"|Phone:\"\r",
+						"    , iifNull( Postal, \"NULL\")\r",
+						"    , \"|Phone:\"\r",
+						"    , iifNull( Phone, \"NULL\")\r",
+						"    , \"|EMail:\"\r",
+						"    , iifNull( EMail, \"NULL\")\r",
+						"    , \"|Remarks:\"\r",
+						"    , iifNull( Remarks, \"NULL\")\r",
+						"    , \"|Deceased:\"\r",
+						"    , iifNull( {Deceased?}, \"NULL\")\r",
+						"    , \"|SourceFilename:\"\r",
+						"    , iifNull( SourceFilename, \"NULL\")\r",
+						"),",
+						"          IdentifyingColumn = concat(\r",
+						"    iif(\r",
+						"        or(\r",
+						"            isNull(FirstName)\r",
+						"            , isNull(LastName)\r",
+						"        )\r",
+						"        , \"FirstNameOrLastName|\"\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        or(\r",
+						"            and(\r",
+						"                equals(\r",
+						"                    iifNull(UseThisPostalCode,\"\")\r",
+						"                    , \"\"\r",
+						"                )\r",
+						"                , length(\r",
+						"                    concat(\r",
+						"                        iifNull(Street, \"\")\r",
+						"                        , iifNull(City, \"\")\r",
+						"                        , iifNull(StateAbbreviation, \"\")\r",
+						"                    )\r",
+						"                ) > 0\r",
+						"            )\r",
+						"            , not(\r",
+						"            equals(Postal, UseThisPostalCode)\r",
+						"            )\r",
+						"        )\r",
+						"        , \"Postal|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        UseThisIsPrivate == \"TRUE\"\r",
+						"        , \"Remarks|\"\r",
+						"        , \"\")\r",
+						"),",
+						"          IdentifyingValue = concat(\r",
+						"    iif(\r",
+						"        or(\r",
+						"            isNull(FirstName)\r",
+						"            , isNull(LastName)\r",
+						"        )\r",
+						"        , concat(\r",
+						"            iifNull(FirstName, \"NULL\")\r",
+						"            , \":\"\r",
+						"            , iifNull(LastName, \"NULL\")\r",
+						"            , \"|\"\r",
+						"        )\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        or(\r",
+						"            and(\r",
+						"                equals(\r",
+						"                    iifNull(UseThisPostalCode,\"\")\r",
+						"                    , \"\"\r",
+						"                )\r",
+						"                , length(\r",
+						"                    concat(\r",
+						"                        iifNull(Street, \"\")\r",
+						"                        , iifNull(City, \"\")\r",
+						"                        , iifNull(StateAbbreviation, \"\")\r",
+						"                    )\r",
+						"                ) > 0\r",
+						"            )\r",
+						"            , not(\r",
+						"            equals(Postal, UseThisPostalCode)\r",
+						"            )\r",
+						"        )\r",
+						"        , concat(\r",
+						"            iifNull(Postal, \"NULL\")\r",
+						"            , \"|\"\r",
+						"        )\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        UseThisIsPrivate == \"TRUE\"\r",
+						"        , iifNull(Remarks, \"NULL\")\r",
+						"        , \"\"\r",
+						"    )\r",
+						")) ~> DeriveAnomalyData",
+						"CheckingAndDeriving sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          LegacyContactId as string,",
+						"          ContactType as string,",
+						"          ContactName as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          HomePhone as string,",
+						"          HomeEmail as string,",
+						"          Address1 as string,",
+						"          City as string,",
+						"          State as string,",
+						"          PostalCode as string,",
+						"          IsPrivate as string,",
+						"          IsDeceased as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          LegacyContactId = Number,",
+						"          ContactType = UseThisContactType,",
+						"          ContactName = UseThisContactName,",
+						"          FirstName = UseThisFirstName,",
+						"          LastName = UseThisLastName,",
+						"          HomePhone = Phone,",
+						"          HomeEmail = EMail,",
+						"          Address1 = Street,",
+						"          City,",
+						"          State,",
+						"          PostalCode = UseThisPostalCode,",
+						"          IsPrivate = UseThisIsPrivate,",
+						"          IsDeceased = UseThisIsDeceased",
+						"     )) ~> VirtuousContacts",
+						"RemoveGoodRows sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          IdentifyingColumnName as string,",
+						"          ColumnValue as string,",
+						"          ConcatenatedRowData as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          IdentifyingColumnName = IdentifyingColumn,",
+						"          ColumnValue = IdentifyingValue,",
+						"          ConcatenatedRowData",
+						"     )) ~> AnomalyLog"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/MockData_SQL_DB_Contacts')]",
+				"[concat(variables('factoryId'), '/datasets/USStateAbbreviations')]",
+				"[concat(variables('factoryId'), '/datasets/Virtuous_Contacts_Table')]",
+				"[concat(variables('factoryId'), '/datasets/AnomalyLog')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ImportToSQLDB')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -815,7 +1298,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "ContactsToSQLDB",
+								"referenceName": "ContactsCSVToSQLDB",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
@@ -889,7 +1372,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "ContactMethodsToSQLDB",
+								"referenceName": "ContactMethodsCSVToSQLDB",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
@@ -913,9 +1396,9 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/ContactsToSQLDB')]",
+				"[concat(variables('factoryId'), '/dataflows/ContactsCSVToSQLDB')]",
 				"[concat(variables('factoryId'), '/dataflows/GiftsToSQLDB')]",
-				"[concat(variables('factoryId'), '/dataflows/ContactMethodsToSQLDB')]"
+				"[concat(variables('factoryId'), '/dataflows/ContactMethodsCSVToSQLDB')]"
 			]
 		}
 	]
