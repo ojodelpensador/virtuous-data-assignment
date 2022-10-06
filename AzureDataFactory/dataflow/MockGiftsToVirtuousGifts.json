@@ -24,6 +24,14 @@
 					},
 					"name": "dboGifts",
 					"description": "Virtuous Gifts Table"
+				},
+				{
+					"dataset": {
+						"referenceName": "AnomalyLog",
+						"type": "DatasetReference"
+					},
+					"name": "dboAnomalyLog",
+					"description": "Insert Anomaly data"
 				}
 			],
 			"transformations": [
@@ -184,7 +192,7 @@
 				"    , \"|SourceFilename:\"\r",
 				"    , coalesce( SourceFilename, \"NULL\")\r",
 				")) ~> DeriveAnomalyData",
-				"DeriveAnomalyData filter(ERROR_FUNCTION('')) ~> RemoveGoodRows",
+				"DeriveAnomalyData filter(coalesce( ColumnValue, \"\") != \"\") ~> RemoveGoodRows",
 				"IncludeRowsWithRequiredData sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
@@ -213,7 +221,22 @@
 				"          GiftAmount,",
 				"          Notes = notes,",
 				"          CreditCardType",
-				"     )) ~> dboGifts"
+				"     )) ~> dboGifts",
+				"RemoveGoodRows sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IdentifyingColumnName as string,",
+				"          ColumnValue as string,",
+				"          ConcatenatedRowData as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> dboAnomalyLog"
 			]
 		}
 	}
