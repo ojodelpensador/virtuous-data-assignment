@@ -1,0 +1,67 @@
+{
+	"name": "MockGifts",
+	"properties": {
+		"folder": {
+			"name": "MockTablesToVirtuousTables"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_SQL_DB_Gifts",
+						"type": "DatasetReference"
+					},
+					"name": "MockGifts",
+					"description": "Row data from MockGifts table"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "ConversionToDestinationDataTypes",
+					"description": "Derive GiftAmount as decimal\nDerive GiftDate as date"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          donor_number as string,",
+				"          gift_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          {amount received} as string,",
+				"          date as string,",
+				"          {credit card type} as string,",
+				"          {payment method} as string,",
+				"          notes as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MockGifts",
+				"MockGifts derive(GiftAmount = coalesce(\r",
+				"    toDecimal( {amount received}, 10, 4, '$######.0000')\r",
+				"    , toDecimal( {amount received}, 10, 4, '######.0000')\r",
+				"),",
+				"          GiftDate = coalesce(\r",
+				"    toDate( date, 'MM/dd/yyyy','en-US')\r",
+				"    , toDate( date, 'yyyy/MM/dd','en-US')\r",
+				"),",
+				"          GiftType = case(\r",
+				"    regexMatch({amount received}, \"^\\\\s*-\")\r",
+				"        , \"Reversing Transaction\"\r",
+				"    , regexMatch({payment method}, \"credit\")\r",
+				"        , \"Credit\"\r",
+				"    , regexMatch({payment method}, \"cash\")\r",
+				"        , \"Cash\"\r",
+				"    , regexMatch({payment method}, \"check\")\r",
+				"        , \"Check\"\r",
+				"        , \"Other\"\r",
+				")\r",
+				") ~> ConversionToDestinationDataTypes"
+			]
+		}
+	}
+}
