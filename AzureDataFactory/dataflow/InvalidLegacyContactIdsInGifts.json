@@ -1,0 +1,91 @@
+{
+	"name": "InvalidLegacyContactIdsInGifts",
+	"properties": {
+		"folder": {
+			"name": "TableLevelAnomalyLogging"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Virtuous_Gifts_Table",
+						"type": "DatasetReference"
+					},
+					"name": "UnmatchLegacyContactIdValues",
+					"description": "Left Outer Join dbo.Gifts to dbo.Contacts and log rows for were dbo.Gifts.LegacyContactId does not exist in dbo.Contacts "
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AnomalyLog",
+						"type": "DatasetReference"
+					},
+					"name": "dboAnomalyLog",
+					"description": "INSERT AnomalyLog data"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DeriveAnomalyLogData",
+					"description": "Derive IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          LegacyContactId as string,",
+				"          LegacyGiftId as integer,",
+				"          GiftType as string,",
+				"          GiftDate as date,",
+				"          GiftAmount as decimal(19,4),",
+				"          Notes as string,",
+				"          CreditCardType as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    G.LegacyContactId\\n    , G.LegacyGiftId\\n    , G.GiftType\\n    , G.GiftDate\\n    , G.GiftAmount\\n    , G.Notes\\n    , G.CreditCardType\\n    FROM dbo.Gifts AS G\\n\\n    LEFT OUTER JOIN dbo.Contacts AS C\\n        ON (C.LegacyContactId = G.LegacyContactId)\\n\\n    WHERE (C.LegacyContactId IS NULL)',",
+				"     format: 'query') ~> UnmatchLegacyContactIdValues",
+				"UnmatchLegacyContactIdValues derive(IdentifyingColumnName = \"Gifts.LegacyContactId|\",",
+				"          ColumnValue = LegacyContactId,",
+				"          ConcatenatedRowData = concat(\r",
+				"    \"LegacyContactId:\"\r",
+				"    , LegacyContactId\r",
+				"    , \"|LegacyGiftId:\"\r",
+				"    , coalesce( toString(LegacyGiftId), \"NULL\")\r",
+				"    , \"|GiftType:\"\r",
+				"    , coalesce( GiftType, \"NULL\")\r",
+				"    , \"|GiftDate:\"\r",
+				"    , coalesce( toString(GiftDate), \"NULL\")\r",
+				"    , \"|GiftAmount:\"\r",
+				"    , coalesce( toString(GiftAmount), \"NULL\")\r",
+				"    , \"|Notes:\"\r",
+				"    , coalesce( Notes, \"NULL\")\r",
+				"    , \"|CreditCardType:\"\r",
+				"    , coalesce( CreditCardType, \"NULL\")\r",
+				")) ~> DeriveAnomalyLogData",
+				"DeriveAnomalyLogData sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IdentifyingColumnName as string,",
+				"          ColumnValue as string,",
+				"          ConcatenatedRowData as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IdentifyingColumnName,",
+				"          ColumnValue,",
+				"          ConcatenatedRowData",
+				"     )) ~> dboAnomalyLog"
+			]
+		}
+	}
+}
