@@ -1,0 +1,12 @@
+LegacyContactId,ContactType,ContactName,FirstName,LastName,HomePhone,HomeEmail,Address1,City,State,PostalCode,IsPrivate,IsDeceased
+488464926-5,Household,Hoyt Castille,Hoyt,Castille,NULL,fcastille4@timesonline.co.uk,37 8th Trail,Grand Rapids,MI,49560,FALSE,FALSE
+739131380-7,Household,Rosemaria Dimond,Rosemaria,Dimond,NULL,NULL,NULL,Juneau,AK,,FALSE,FALSE
+029456846-8,Household,,,,NULL,jdoley6@telegraph.co.uk,608 Old Shore Alley,Marietta,GA,30066,FALSE,FALSE
+729707142-0,Organization,A Company Co.,,,NULL,NULL,2055 Lakewood Parkway,Camden,NJ,,FALSE,FALSE
+093004505-X,Household,Masha,Masha,,NULL,NULL,353 Schmedeman Park,Indianapolis,IN,,FALSE,FALSE
+653377813-7,Household,Karita Lumbers,Karita,Lumbers,NULL,NULL,4 Bunting Parkway,Washington,DC,,TRUE,FALSE
+390551098-7,Household,Helga Benech,Helga,Benech,NULL,ebenech1@goodreads.com,48684 Jenifer Way,Las Vegas,NV,89130,FALSE,FALSE
+848348568-0,Household,Mannie Turpin,Mannie,Turpin,702-844-9524,NULL,NULL,NULL,NV,,FALSE,TRUE
+315297729-8,Household,Benedict Oscar,Benedict,Oscar,NULL,NULL,4225 Madison Ave,Boise,ID,,FALSE,FALSE
+687119652-8,Household,Ruggiero Makepeace,Ruggiero,Makepeace,NULL,cmakepeace7@1688.com,15 Sunbrook Center,Omaha,NE,68164,FALSE,FALSE
+315297729-8,Household,Idell Mouncey,Idell,Mouncey,NULL,dmouncey9@cnn.com,365 Troy Park,Toledo,OH,43635,FALSE,FALSE
