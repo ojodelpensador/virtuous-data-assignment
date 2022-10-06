@@ -60,7 +60,18 @@
 				"        , \"Check\"\r",
 				"        , \"Other\"\r",
 				")\r",
-				") ~> ConversionToDestinationDataTypes"
+				",",
+				"          CreditCardType = case(\r",
+				"    regexMatch({credit card type}, \"[aA][mM].*[eE][xX]\")\r",
+				"        , \"AMEX\"\r",
+				"    , regexMatch({credit card type}, \"Master\\\\.*Card\")\r",
+				"        , \"Mastercard\"\r",
+				"    , regexMatch({credit card type}, \"Disc\")\r",
+				"        , \"Discover\"\r",
+				"    , regexMatch({credit card type}, \"Visa\")\r",
+				"        , \"Visa\"\r",
+				"        , toString(null())\r",
+				")) ~> ConversionToDestinationDataTypes"
 			]
 		}
 	}
