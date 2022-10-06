@@ -93,11 +93,11 @@
 				"          CreditCardType = case(\r",
 				"    regexMatch({credit card type}, \"[aA][mM].*[eE][xX]\")\r",
 				"        , \"AMEX\"\r",
-				"    , regexMatch({credit card type}, \"Master\\\\.*Card\")\r",
+				"    , regexMatch({credit card type}, \"[mM][aA][sS][tT][eE][rR].*[cC][aA][rR][dD]\")\r",
 				"        , \"Mastercard\"\r",
-				"    , regexMatch({credit card type}, \"Disc\")\r",
+				"    , regexMatch({credit card type}, \"[dD][iI][sS][cC]\")\r",
 				"        , \"Discover\"\r",
-				"    , regexMatch({credit card type}, \"Visa\")\r",
+				"    , regexMatch({credit card type}, \"[vV][iI][sS][aA]\")\r",
 				"        , \"Visa\"\r",
 				"        , toString(null())\r",
 				")) ~> ConversionToDestinationDataTypes",
@@ -236,7 +236,12 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> dboAnomalyLog"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IdentifyingColumnName,",
+				"          ColumnValue,",
+				"          ConcatenatedRowData",
+				"     )) ~> dboAnomalyLog"
 			]
 		}
 	}
