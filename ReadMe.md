@@ -20,3 +20,4 @@ ToDos:
 - Combine data flows for CSV to SQLDB into one Data Flow object containing all as parallel data flows.
 - Add data to AnomalyLog for rows in which there is no value for CompanyName, FirstName, and LastName.
 - Evaluate conditional (if) code and use case where it simplifies reading/maintenance.
+- Replace loading query for ContactMethods to allow duplicate methods for the same LegacyContactId.
