@@ -6,7 +6,7 @@
 			"type": "LinkedServiceReference"
 		},
 		"folder": {
-			"name": "Virtuous_Table_Datasets"
+			"name": "Utility_Datasets"
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",

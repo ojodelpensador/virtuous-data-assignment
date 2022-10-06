@@ -1,0 +1,79 @@
+{
+	"name": "InvalidLegacyContactIdsInContactMethods",
+	"properties": {
+		"folder": {
+			"name": "TableLevelAnomalyLogging"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Virtuous_Gifts_Table",
+						"type": "DatasetReference"
+					},
+					"name": "UnmatchLegacyContactIdValues",
+					"description": "Left Outer Join dbo.ContactMethods to dbo.Contacts and log rows for were dbo.ConcactMethods.LegacyContactId does not exist in dbo.Contacts "
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AnomalyLog",
+						"type": "DatasetReference"
+					},
+					"name": "dboAnomalyLog",
+					"description": "INSERT AnomalyLog data"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DeriveAnomalyLogData",
+					"description": "Derive IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          LegacyContactId as string,",
+				"          Type as string,",
+				"          Value as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    CM.LegacyContactId\\n    , CM.[Type]\\n    , CM.[Value]\\n    FROM dbo.ContactMethods AS CM\\n\\n    LEFT OUTER JOIN dbo.Contacts AS C\\n        ON (C.LegacyContactId = CM.LegacyContactId)\\n\\n    WHERE (C.LegacyContactId IS NULL)\\n',",
+				"     format: 'query') ~> UnmatchLegacyContactIdValues",
+				"UnmatchLegacyContactIdValues derive(IdentifyingColumnName = \"ContactMethods.LegacyContactId|\",",
+				"          ColumnValue = LegacyContactId,",
+				"          ConcatenatedRowData = concat(\r",
+				"    \"LegacyContactId:\"\r",
+				"    , LegacyContactId\r",
+				"    , \"|Type:\"\r",
+				"    , coalesce( Type, \"NULL\")\r",
+				"    , \"|Value:\"\r",
+				"    , coalesce( Value, \"NULL\")\r",
+				")) ~> DeriveAnomalyLogData",
+				"DeriveAnomalyLogData sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IdentifyingColumnName as string,",
+				"          ColumnValue as string,",
+				"          ConcatenatedRowData as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IdentifyingColumnName,",
+				"          ColumnValue,",
+				"          ConcatenatedRowData",
+				"     )) ~> dboAnomalyLog"
+			]
+		}
+	}
+}

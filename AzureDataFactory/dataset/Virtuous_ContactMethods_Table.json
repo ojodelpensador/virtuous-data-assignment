@@ -1,33 +1,32 @@
 {
-	"name": "USStateAbbreviations",
+	"name": "Virtuous_ContactMethods_Table",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDatabase1",
 			"type": "LinkedServiceReference"
 		},
 		"folder": {
-			"name": "Utility_Datasets"
+			"name": "Virtuous_Table_Datasets"
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [
 			{
-				"name": "StateAbbreviationId",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "StateAbbreviation",
+				"name": "LegacyContactId",
 				"type": "varchar"
 			},
 			{
-				"name": "StateName",
+				"name": "Type",
+				"type": "varchar"
+			},
+			{
+				"name": "Value",
 				"type": "varchar"
 			}
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "StateAbbreviations"
+			"table": "ContactMethods"
 		}
 	}
 }
