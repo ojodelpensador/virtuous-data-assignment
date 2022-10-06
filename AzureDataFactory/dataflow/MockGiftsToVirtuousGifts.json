@@ -38,6 +38,10 @@
 				{
 					"name": "DeriveAnomalyData",
 					"description": "Derive IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
+				},
+				{
+					"name": "RemoveGoodRows",
+					"description": "If ColumnValue is empty/NULL, then filter it out"
 				}
 			],
 			"scriptLines": [
@@ -128,7 +132,7 @@
 				"        , \"\"\r",
 				"    )\r",
 				"),",
-				"          IdentifyingValue = concat(\r",
+				"          ColumnValue = concat(\r",
 				"    iif(\r",
 				"        isNull(donor_number)\r",
 				"        , \"NULL|\"\r",
@@ -180,6 +184,7 @@
 				"    , \"|SourceFilename:\"\r",
 				"    , coalesce( SourceFilename, \"NULL\")\r",
 				")) ~> DeriveAnomalyData",
+				"DeriveAnomalyData filter(ERROR_FUNCTION('')) ~> RemoveGoodRows",
 				"IncludeRowsWithRequiredData sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
