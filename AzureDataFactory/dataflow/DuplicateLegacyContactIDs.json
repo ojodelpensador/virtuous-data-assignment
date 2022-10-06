@@ -15,8 +15,22 @@
 					"name": "DuplicateLegacyContactIDs"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AnomalyLog",
+						"type": "DatasetReference"
+					},
+					"name": "LoadAnomalyLogWithDuplLegacyContactId",
+					"description": "Load AnomalyLog columns into table"
+				}
+			],
+			"transformations": [
+				{
+					"name": "BuildAnomalyTableInput",
+					"description": "Build IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          LegacyContactId as string,",
@@ -31,13 +45,68 @@
 				"          State as string,",
 				"          PostalCode as string,",
 				"          IsPrivate as string,",
-				"          IsDeceased as string",
+				"          IsDeceased as string,",
+				"          RANK_BY_ContactName as long",
 				"     ),",
 				"     allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT \\n    C.LegacyContactId\\n    , C.ContactType\\n    , C.ContactName\\n    , C.FirstName\\n    , C.LastName\\n    , C.HomePhone\\n    , C.HomeEmail\\n    , C.Address1\\n    , C.City\\n    , C.[State]\\n    , C.PostalCode\\n    , C.IsPrivate\\n    , C.IsDeceased\\n    , ROW_NUMBER() OVER(PARTITION BY C.LegacyContactId ORDER BY C.ContactName) AS RANK_BY_ContactName\\n    FROM dbo.Contacts AS C\\n\\n    INNER JOIN (\\n        SELECT\\n            LegacyContactId \\n            , COUNT(ContactName) AS COUNT_ContactName\\n            FROM dbo.Contacts\\n\\n            GROUP BY\\n                LegacyContactId\\n\\n            HAVING\\n                COUNT(ContactName) > 1\\n    ) AS D\\n        ON (D.LegacyContactId = C.LegacyContactId)',",
-				"     format: 'query') ~> DuplicateLegacyContactIDs"
+				"     format: 'query') ~> DuplicateLegacyContactIDs",
+				"DuplicateLegacyContactIDs derive(IdentifyingColumnName = \"Contacts.LegacyContactId|\",",
+				"          ColumnValue = concat(\r",
+				"    LegacyContactId\r",
+				"    , \": R\"\r",
+				"    , toString(RANK_BY_ContactName)\r",
+				"    , \"|\"),",
+				"          ConcatenatedRowData = concat(\r",
+				"    \"LegacyContactId:\"\r",
+				"    , LegacyContactId\r",
+				"    , \"|ContactType:\"\r",
+				"    , iifNull( ContactType, \"NULL\")\r",
+				"    , \"|ContactName:\"\r",
+				"    , iifNull( ContactName, \"NULL\")\r",
+				"    , \"|FirstName:\"\r",
+				"    , iifNull( FirstName, \"NULL\")\r",
+				"    , \"|LastName:\"\r",
+				"    , iifNull( LastName, \"NULL\")\r",
+				"    , \"|HomePhone:\"\r",
+				"    , iifNull( HomePhone, \"NULL\")\r",
+				"    , \"|HomeEmail:\"\r",
+				"    , iifNull( HomeEmail, \"NULL\")\r",
+				"    , \"|Address1:\"\r",
+				"    , iifNull( Address1, \"NULL\")\r",
+				"    , \"|City:\"\r",
+				"    , iifNull( City, \"NULL\")\r",
+				"    , \"|State:\"\r",
+				"    , iifNull( State, \"NULL\")\r",
+				"    , \"|PostalCode:\"\r",
+				"    , iifNull( PostalCode, \"NULL\")\r",
+				"    , \"|IsPrivate:\"\r",
+				"    , iifNull( IsPrivate, \"NULL\")\r",
+				"    , \"|IsDeceased:\"\r",
+				"    , iifNull( IsDeceased, \"NULL\")\r",
+				")) ~> BuildAnomalyTableInput",
+				"BuildAnomalyTableInput sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IdentifyingColumnName as string,",
+				"          ColumnValue as string,",
+				"          ConcatenatedRowData as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          IdentifyingColumnName,",
+				"          ColumnValue,",
+				"          ConcatenatedRowData",
+				"     )) ~> LoadAnomalyLogWithDuplLegacyContactId"
 			]
 		}
 	}
