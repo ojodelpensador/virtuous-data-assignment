@@ -13,6 +13,714 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/MockContactsToVirtuousContacts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "MockTablesToVirtuousTables"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_Contacts",
+								"type": "DatasetReference"
+							},
+							"name": "MockContactsTable",
+							"description": "MockContacts data"
+						},
+						{
+							"dataset": {
+								"referenceName": "USStateAbbreviations",
+								"type": "DatasetReference"
+							},
+							"name": "StateAbbreviations"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Virtuous_Contacts_Table",
+								"type": "DatasetReference"
+							},
+							"name": "dboContacts",
+							"description": "Export data to dbo.Contacts table"
+						},
+						{
+							"dataset": {
+								"referenceName": "AnomalyLog",
+								"type": "DatasetReference"
+							},
+							"name": "AnomalyLog"
+						}
+					],
+					"transformations": [
+						{
+							"name": "CheckingAndDeriving",
+							"description": "Check/derive valid Postal code\nCheck/derive IsDeceased\nCheck/derive ContactType"
+						},
+						{
+							"name": "LookupMockContactState",
+							"description": "Match MockContact state to Valid State Abbreviations"
+						},
+						{
+							"name": "RemoveGoodRows",
+							"description": "If IdentifyingValue is blank string or NULL, omit the row"
+						},
+						{
+							"name": "DeriveAnomalyData",
+							"description": "Concatenate row data\nTest and set identifying column(s) and value(s)"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Number as string,",
+						"          CompanyName as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Street as string,",
+						"          City as string,",
+						"          State as string,",
+						"          Postal as string,",
+						"          Phone as string,",
+						"          EMail as string,",
+						"          Remarks as string,",
+						"          {Deceased?} as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> MockContactsTable",
+						"source(output(",
+						"          StateAbbreviationId as integer,",
+						"          StateAbbreviation as string,",
+						"          StateName as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> StateAbbreviations",
+						"LookupMockContactState derive(UseThisPostalCode = iif(\r",
+						"    and(\r",
+						"        length(concat(Street,City,State))>0\r",
+						"        ,and(\r",
+						"            not(isNull(StateAbbreviation))\r",
+						"            ,or(regexMatch(Postal, `^\\d\\d\\d\\d\\d$`),regexMatch(Postal, `^\\d\\d\\d\\d\\d-\\d\\d\\d\\d$`))\r",
+						"        )\r",
+						"    )\r",
+						"    ,Postal\r",
+						"    ,''),",
+						"          UseThisIsDeceased = iif({Deceased?}=='Yes','TRUE','FALSE'),",
+						"          UseThisContactType = iif(isNull(CompanyName),'Household','Organization'),",
+						"          UseThisFirstName = iifNull(FirstName, \"\"),",
+						"          UseThisLastName = iifNull(LastName, \"\"),",
+						"          UseThisIsPrivate = iif(\r",
+						"    and(\r",
+						"        like(Remarks, '%anonymous%')\r",
+						"        ,not(like(Remarks, '%not anonymous%'))\r",
+						"    )\r",
+						"    ,'TRUE'\r",
+						"    ,'FALSE'\r",
+						"),",
+						"          UseThisContactName = concat(\r",
+						"     coalesce(\r",
+						"          CompanyName\r",
+						"          , \"\"\r",
+						"     )\r",
+						"     , iif(\r",
+						"          and(\r",
+						"               not( isNull(CompanyName))\r",
+						"               , length(\r",
+						"                    coalesce(\r",
+						"                         FirstName,\r",
+						"                         LastName,\r",
+						"                         \"\"\r",
+						"                    )\r",
+						"               ) > 0\r",
+						"          )\r",
+						"          , \": \"\r",
+						"          , \"\"\r",
+						"     )\r",
+						"    , iif(\r",
+						"        isNull(FirstName)\r",
+						"        ,\"\"\r",
+						"        ,concat(\r",
+						"            FirstName\r",
+						"            , iif(\r",
+						"                isNull(LastName)\r",
+						"                ,\"\"\r",
+						"                ,\" \")\r",
+						"        )\r",
+						"    )\r",
+						"    , iif(\r",
+						"        isNull(LastName)\r",
+						"        , \"\"\r",
+						"        , LastName\r",
+						"    )\r",
+						")) ~> CheckingAndDeriving",
+						"MockContactsTable, StateAbbreviations lookup(State == StateAbbreviation,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> LookupMockContactState",
+						"DeriveAnomalyData filter(not(",
+						"    equals(",
+						"    iifNull( IdentifyingValue, \"\")",
+						"    , \"\"",
+						"    )",
+						")) ~> RemoveGoodRows",
+						"CheckingAndDeriving derive(ConcatenatedRowData = concat(\r",
+						"    \"Number:\"\r",
+						"    , Number\r",
+						"    , \"|CompanyName:\"\r",
+						"    , coalesce( CompanyName, \"NULL\")\r",
+						"    , \"|FirstName:\"\r",
+						"    , coalesce( FirstName, \"NULL\")\r",
+						"    , \"|LastName:\"\r",
+						"    , coalesce( LastName, \"NULL\")\r",
+						"    , \"|Street:\"\r",
+						"    , coalesce( Street, \"NULL\")\r",
+						"    , \"|City:\"\r",
+						"    , coalesce( City, \"NULL\")\r",
+						"    , \"|State:\"\r",
+						"    , coalesce( State, \"NULL\")\r",
+						"    , \"|Postal:\"\r",
+						"    , coalesce( Postal, \"NULL\")\r",
+						"    , \"|Phone:\"\r",
+						"    , coalesce( Postal, \"NULL\")\r",
+						"    , \"|Phone:\"\r",
+						"    , coalesce( Phone, \"NULL\")\r",
+						"    , \"|EMail:\"\r",
+						"    , coalesce( EMail, \"NULL\")\r",
+						"    , \"|Remarks:\"\r",
+						"    , coalesce( Remarks, \"NULL\")\r",
+						"    , \"|Deceased:\"\r",
+						"    , coalesce( {Deceased?}, \"NULL\")\r",
+						"    , \"|SourceFilename:\"\r",
+						"    , coalesce( SourceFilename, \"NULL\")\r",
+						"),",
+						"          IdentifyingColumn = concat(\r",
+						"    \"MockContacts:\"\r",
+						"    ,iif(\r",
+						"        or(\r",
+						"            isNull(FirstName)\r",
+						"            , isNull(LastName)\r",
+						"        )\r",
+						"        , \"FirstNameOrLastName|\"\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        or(\r",
+						"            and(\r",
+						"                equals(\r",
+						"                    iifNull(UseThisPostalCode,\"\")\r",
+						"                    , \"\"\r",
+						"                )\r",
+						"                , length(\r",
+						"                    concat(\r",
+						"                        iifNull(Street, \"\")\r",
+						"                        , iifNull(City, \"\")\r",
+						"                        , iifNull(StateAbbreviation, \"\")\r",
+						"                    )\r",
+						"                ) > 0\r",
+						"            )\r",
+						"            , not(\r",
+						"            equals(Postal, UseThisPostalCode)\r",
+						"            )\r",
+						"        )\r",
+						"        , \"Postal|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        UseThisIsPrivate == \"TRUE\"\r",
+						"        , \"Remarks|\"\r",
+						"        , \"\")\r",
+						"),",
+						"          IdentifyingValue = concat(\r",
+						"    iif(\r",
+						"        or(\r",
+						"            isNull(FirstName)\r",
+						"            , isNull(LastName)\r",
+						"        )\r",
+						"        , concat(\r",
+						"            iifNull(FirstName, \"NULL\")\r",
+						"            , \":\"\r",
+						"            , iifNull(LastName, \"NULL\")\r",
+						"            , \"|\"\r",
+						"        )\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        or(\r",
+						"            and(\r",
+						"                equals(\r",
+						"                    iifNull(UseThisPostalCode,\"\")\r",
+						"                    , \"\"\r",
+						"                )\r",
+						"                , length(\r",
+						"                    concat(\r",
+						"                        iifNull(Street, \"\")\r",
+						"                        , iifNull(City, \"\")\r",
+						"                        , iifNull(StateAbbreviation, \"\")\r",
+						"                    )\r",
+						"                ) > 0\r",
+						"            )\r",
+						"            , not(\r",
+						"            equals(Postal, UseThisPostalCode)\r",
+						"            )\r",
+						"        )\r",
+						"        , concat(\r",
+						"            iifNull(Postal, \"NULL\")\r",
+						"            , \"|\"\r",
+						"        )\r",
+						"        , \"\"\r",
+						"    )\r",
+						"    , iif(\r",
+						"        UseThisIsPrivate == \"TRUE\"\r",
+						"        , iifNull(Remarks, \"NULL\")\r",
+						"        , \"\"\r",
+						"    )\r",
+						")) ~> DeriveAnomalyData",
+						"CheckingAndDeriving sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          LegacyContactId as string,",
+						"          ContactType as string,",
+						"          ContactName as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          HomePhone as string,",
+						"          HomeEmail as string,",
+						"          Address1 as string,",
+						"          City as string,",
+						"          State as string,",
+						"          PostalCode as string,",
+						"          IsPrivate as string,",
+						"          IsDeceased as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          LegacyContactId = Number,",
+						"          ContactType = UseThisContactType,",
+						"          ContactName = UseThisContactName,",
+						"          FirstName = UseThisFirstName,",
+						"          LastName = UseThisLastName,",
+						"          HomePhone = Phone,",
+						"          HomeEmail = EMail,",
+						"          Address1 = Street,",
+						"          City,",
+						"          State,",
+						"          PostalCode = UseThisPostalCode,",
+						"          IsPrivate = UseThisIsPrivate,",
+						"          IsDeceased = UseThisIsDeceased",
+						"     )) ~> dboContacts",
+						"RemoveGoodRows sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          IdentifyingColumnName as string,",
+						"          ColumnValue as string,",
+						"          ConcatenatedRowData as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          IdentifyingColumnName = IdentifyingColumn,",
+						"          ColumnValue = IdentifyingValue,",
+						"          ConcatenatedRowData",
+						"     )) ~> AnomalyLog"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MockGiftsToVirtuousGifts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "MockTablesToVirtuousTables"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "MockData_SQL_DB_Gifts",
+								"type": "DatasetReference"
+							},
+							"name": "MockGifts",
+							"description": "Row data from MockGifts table"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Virtuous_Gifts_Table",
+								"type": "DatasetReference"
+							},
+							"name": "dboGifts",
+							"description": "Virtuous Gifts Table"
+						},
+						{
+							"dataset": {
+								"referenceName": "AnomalyLog",
+								"type": "DatasetReference"
+							},
+							"name": "dboAnomalyLog",
+							"description": "Insert Anomaly data"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ConversionToDestinationDataTypes",
+							"description": "Derive GiftAmount as decimal\nDerive GiftDate as date"
+						},
+						{
+							"name": "IncludeRowsWithRequiredData",
+							"description": "Rows that are required to have non-NULL data are: LegacyContactId, LegacyGiftId, GiftDate, GiftAmount"
+						},
+						{
+							"name": "DeriveAnomalyData",
+							"description": "Derive IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
+						},
+						{
+							"name": "RemoveGoodRows",
+							"description": "If ColumnValue is empty/NULL, then filter it out"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          donor_number as string,",
+						"          gift_id as integer,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          {amount received} as string,",
+						"          date as string,",
+						"          {credit card type} as string,",
+						"          {payment method} as string,",
+						"          notes as string,",
+						"          SourceFilename as string,",
+						"          ETLInsertDatetime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> MockGifts",
+						"MockGifts derive(GiftAmount = coalesce(\r",
+						"    toDecimal( {amount received}, 10, 4, '$######.0000')\r",
+						"    , toDecimal( {amount received}, 10, 4, '######.0000')\r",
+						"),",
+						"          GiftDate = coalesce(\r",
+						"    toDate( date, 'MM/dd/yyyy','en-US')\r",
+						"    , toDate( date, 'yyyy/MM/dd','en-US')\r",
+						"),",
+						"          GiftType = case(\r",
+						"    regexMatch({amount received}, \"^\\\\s*-\")\r",
+						"        , \"Reversing Transaction\"\r",
+						"    , regexMatch({payment method}, \"credit\")\r",
+						"        , \"Credit\"\r",
+						"    , regexMatch({payment method}, \"cash\")\r",
+						"        , \"Cash\"\r",
+						"    , regexMatch({payment method}, \"check\")\r",
+						"        , \"Check\"\r",
+						"        , \"Other\"\r",
+						")\r",
+						",",
+						"          CreditCardType = case(\r",
+						"    regexMatch({credit card type}, \"[aA][mM].*[eE][xX]\")\r",
+						"        , \"AMEX\"\r",
+						"    , regexMatch({credit card type}, \"[mM][aA][sS][tT][eE][rR].*[cC][aA][rR][dD]\")\r",
+						"        , \"Mastercard\"\r",
+						"    , regexMatch({credit card type}, \"[dD][iI][sS][cC]\")\r",
+						"        , \"Discover\"\r",
+						"    , regexMatch({credit card type}, \"[vV][iI][sS][aA]\")\r",
+						"        , \"Visa\"\r",
+						"        , toString(null())\r",
+						")) ~> ConversionToDestinationDataTypes",
+						"ConversionToDestinationDataTypes filter(not(\r",
+						"    or(\r",
+						"        isNull(donor_number)\r",
+						"        , or(\r",
+						"            isNull(gift_id)\r",
+						"            , or(\r",
+						"                isNull(GiftAmount)\r",
+						"                , isNull(GiftDate)\r",
+						"            )\r",
+						"        )\r",
+						"    )\r",
+						")) ~> IncludeRowsWithRequiredData",
+						"ConversionToDestinationDataTypes derive(IdentifyingColumnName = concat(\r",
+						"    \"MockGifts:\"\r",
+						"    , iif(\r",
+						"        isNull(donor_number)\r",
+						"        , \"donor_number|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(gift_id)\r",
+						"        , \"gift_id|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(GiftAmount)\r",
+						"        , \"amount received|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(GiftDate)\r",
+						"        , \"date|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        and(\r",
+						"            GiftType == \"Credit\"\r",
+						"            , coalesce(CreditCardType,\"\") == \"\"\r",
+						"        )\r",
+						"        , \"payment method:credit card type|\"\r",
+						"        , \"\"\r",
+						"    )\r",
+						"),",
+						"          ColumnValue = concat(\r",
+						"    iif(\r",
+						"        isNull(donor_number)\r",
+						"        , \"NULL|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(gift_id)\r",
+						"        , \"NULL|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(GiftAmount)\r",
+						"        , \"NULL|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        isNull(GiftDate)\r",
+						"        , \"NULL|\"\r",
+						"        , \"\")\r",
+						"    , iif(\r",
+						"        and(\r",
+						"            GiftType == \"Credit\"\r",
+						"            , coalesce(CreditCardType,\"\") == \"\"\r",
+						"        )\r",
+						"        , concat(\r",
+						"            {payment method}\r",
+						"            , \":\"\r",
+						"            , {credit card type}\r",
+						"        )\r",
+						"        , \"\"\r",
+						"    )\r",
+						"),",
+						"          ConcatenatedRowData = concat(\r",
+						"    \"donor_number:\"\r",
+						"    , coalesce( donor_number, \"NULL\")\r",
+						"    , \"|gift_id:\"\r",
+						"    , coalesce( toString(gift_id), \"NULL\")\r",
+						"    , \"|first_name:\"\r",
+						"    , coalesce( first_name, \"NULL\")\r",
+						"    , \"|last_name:\"\r",
+						"    , coalesce( last_name, \"NULL\")\r",
+						"    , \"|amount received:\"\r",
+						"    , coalesce( {amount received}, \"NULL\")\r",
+						"    , \"|date:\"\r",
+						"    , coalesce( date, \"NULL\")\r",
+						"    , \"|credit card type:\"\r",
+						"    , coalesce( {credit card type}, \"NULL\")\r",
+						"    , \"|payment method:\"\r",
+						"    , coalesce( {payment method}, \"NULL\")\r",
+						"    , \"|notes:\"\r",
+						"    , coalesce( notes, \"NULL\")\r",
+						"    , \"|SourceFilename:\"\r",
+						"    , coalesce( SourceFilename, \"NULL\")\r",
+						")) ~> DeriveAnomalyData",
+						"DeriveAnomalyData filter(coalesce( ColumnValue, \"\") != \"\") ~> RemoveGoodRows",
+						"IncludeRowsWithRequiredData sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          LegacyContactId as string,",
+						"          LegacyGiftId as integer,",
+						"          GiftType as string,",
+						"          GiftDate as date,",
+						"          GiftAmount as decimal(19,4),",
+						"          Notes as string,",
+						"          CreditCardType as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          LegacyContactId = donor_number,",
+						"          LegacyGiftId = gift_id,",
+						"          GiftType,",
+						"          GiftDate,",
+						"          GiftAmount,",
+						"          Notes = notes,",
+						"          CreditCardType",
+						"     )) ~> dboGifts",
+						"RemoveGoodRows sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          IdentifyingColumnName as string,",
+						"          ColumnValue as string,",
+						"          ConcatenatedRowData as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          IdentifyingColumnName,",
+						"          ColumnValue,",
+						"          ConcatenatedRowData",
+						"     )) ~> dboAnomalyLog"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ImportToSQLDB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ContactsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ContactsCSVToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"MockContactsCSVOutput": {},
+									"MockContactsIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "GiftsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ContactsToSQLDB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "GiftsToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GiftsCSVOutput": {},
+									"MockGiftsDataIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ContactMethodsToSQLDB",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "GiftsToSQLDB",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ContactMethodsCSVToSQLDB",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVOutputContactMethods": {},
+									"ContactMethodsIntoSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/MockTablesToVirtuousTablesWithAnomalyLogging')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -38,8 +746,83 @@
 								"datasetParameters": {
 									"MockContactsTable": {},
 									"StateAbbreviations": {},
-									"VirtuousContacts": {},
+									"dboContacts": {},
 									"AnomalyLog": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DuplicateLegacyContactIDs",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "MockContactsToVirtuousContacts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DuplicateLegacyContactIDs",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"DuplicateLegacyContactIDs": {},
+									"LoadAnomalyLogWithDuplLegacyContactId": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "MockGiftsToVirtuousGifts",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "MockContactsToVirtuousContacts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "MockGiftsToVirtuousGifts",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"MockGifts": {},
+									"dboGifts": {},
+									"dboAnomalyLog": {}
 								}
 							},
 							"staging": {},
@@ -57,7 +840,10 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/MockContactsToVirtuousContacts')]",
+				"[concat(variables('factoryId'), '/dataflows/MockGiftsToVirtuousGifts')]"
+			]
 		}
 	]
 }
