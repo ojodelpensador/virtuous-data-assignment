@@ -1,0 +1,37 @@
+{
+	"name": "MockContactMethodsToVirtuousContactMethods",
+	"properties": {
+		"folder": {
+			"name": "MockTablesToVirtuousTables"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MockData_SQL_DB_ContactMethods",
+						"type": "DatasetReference"
+					},
+					"name": "dboMockContactMethods",
+					"description": "Data from dbo.MockContactMethods"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          donor_number as string,",
+				"          Phone as string,",
+				"          {E-mail} as string,",
+				"          Fax as string,",
+				"          SourceFilename as string,",
+				"          ETLInsertDatetime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dboMockContactMethods"
+			]
+		}
+	}
+}
