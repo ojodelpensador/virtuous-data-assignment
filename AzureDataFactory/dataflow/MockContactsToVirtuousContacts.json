@@ -51,7 +51,7 @@
 				},
 				{
 					"name": "RemoveGoodRows",
-					"description": "If IdentifyingColumn is blank string or NULL, omit the row"
+					"description": "If IdentifyingValue is blank string or NULL, omit the row"
 				},
 				{
 					"name": "DeriveAnomalyData",
@@ -150,11 +150,11 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> LookupMockContactState",
-				"DeriveAnomalyData filter(not(\r",
-				"    equals(\r",
-				"    iifNull( IdentifyingColumn, \"\")\r",
-				"    , \"\"\r",
-				"    )\r",
+				"DeriveAnomalyData filter(not(",
+				"    equals(",
+				"    iifNull( IdentifyingValue, \"\")",
+				"    , \"\"",
+				"    )",
 				")) ~> RemoveGoodRows",
 				"CheckingAndDeriving derive(ConcatenatedRowData = concat(\r",
 				"    \"Number:\"\r",
