@@ -1,0 +1,44 @@
+{
+	"name": "DuplicateLegacyContactIDs",
+	"properties": {
+		"folder": {
+			"name": "TableLevelAnomalyLogging"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Virtuous_Contacts_Table",
+						"type": "DatasetReference"
+					},
+					"name": "DuplicateLegacyContactIDs"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          LegacyContactId as string,",
+				"          ContactType as string,",
+				"          ContactName as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          HomePhone as string,",
+				"          HomeEmail as string,",
+				"          Address1 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          PostalCode as string,",
+				"          IsPrivate as string,",
+				"          IsDeceased as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    C.LegacyContactId\\n    , C.ContactType\\n    , C.ContactName\\n    , C.FirstName\\n    , C.LastName\\n    , C.HomePhone\\n    , C.HomeEmail\\n    , C.Address1\\n    , C.City\\n    , C.[State]\\n    , C.PostalCode\\n    , C.IsPrivate\\n    , C.IsDeceased\\n    , ROW_NUMBER() OVER(PARTITION BY C.LegacyContactId ORDER BY C.ContactName) AS RANK_BY_ContactName\\n    FROM dbo.Contacts AS C\\n\\n    INNER JOIN (\\n        SELECT\\n            LegacyContactId \\n            , COUNT(ContactName) AS COUNT_ContactName\\n            FROM dbo.Contacts\\n\\n            GROUP BY\\n                LegacyContactId\\n\\n            HAVING\\n                COUNT(ContactName) > 1\\n    ) AS D\\n        ON (D.LegacyContactId = C.LegacyContactId)',",
+				"     format: 'query') ~> DuplicateLegacyContactIDs"
+			]
+		}
+	}
+}
