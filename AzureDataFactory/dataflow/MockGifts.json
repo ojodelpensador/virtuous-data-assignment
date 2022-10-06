@@ -16,11 +16,28 @@
 					"description": "Row data from MockGifts table"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Virtuous_Gifts_Table",
+						"type": "DatasetReference"
+					},
+					"name": "dboGifts",
+					"description": "Virtuous Gifts Table"
+				}
+			],
 			"transformations": [
 				{
 					"name": "ConversionToDestinationDataTypes",
 					"description": "Derive GiftAmount as decimal\nDerive GiftDate as date"
+				},
+				{
+					"name": "IncludeRowsWithRequiredData",
+					"description": "Rows that are required to have non-NULL data are: LegacyContactId, LegacyGiftId, GiftDate, GiftAmount"
+				},
+				{
+					"name": "DeriveAnomalyData",
+					"description": "Derive IdentifyingColumnName, ColumnValue, and ConcatenatedRowData"
 				}
 			],
 			"scriptLines": [
@@ -71,7 +88,49 @@
 				"    , regexMatch({credit card type}, \"Visa\")\r",
 				"        , \"Visa\"\r",
 				"        , toString(null())\r",
-				")) ~> ConversionToDestinationDataTypes"
+				")) ~> ConversionToDestinationDataTypes",
+				"ConversionToDestinationDataTypes filter(not(\r",
+				"    or(\r",
+				"        isNull(donor_number)\r",
+				"        , or(\r",
+				"            isNull(gift_id)\r",
+				"            , or(\r",
+				"                isNull(GiftAmount)\r",
+				"                , isNull(GiftDate)\r",
+				"            )\r",
+				"        )\r",
+				"    )\r",
+				")) ~> IncludeRowsWithRequiredData",
+				"ConversionToDestinationDataTypes derive() ~> DeriveAnomalyData",
+				"IncludeRowsWithRequiredData sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LegacyContactId as string,",
+				"          LegacyGiftId as integer,",
+				"          GiftType as string,",
+				"          GiftDate as date,",
+				"          GiftAmount as decimal(19,4),",
+				"          Notes as string,",
+				"          CreditCardType as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LegacyContactId = donor_number,",
+				"          LegacyGiftId = gift_id,",
+				"          GiftType,",
+				"          GiftDate,",
+				"          GiftAmount,",
+				"          Notes = notes,",
+				"          CreditCardType",
+				"     )) ~> dboGifts"
 			]
 		}
 	}
